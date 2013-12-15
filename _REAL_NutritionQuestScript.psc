@@ -22,7 +22,8 @@ Event OnInit()
 	;Debug.Notification("Initialized nutrition " + lastUpdateNutrition)
 	
 	RegisterForUpdate(10) ; Update every 10 seconds to reduce nutrition  value.
-
+	
+	Player.AddSpell(_REAL_EnableStarvationSpell, false)
 endEvent
 
 
@@ -94,7 +95,7 @@ Function SetHunger(int aiValue)
 	
 	;Limit hunger value
 	if (hunger > 2 && isStarvationEnabled == false)
-		hunger = 2
+		aiValue = 2
 	endIf
 
 	if (hunger != aiValue)
@@ -131,12 +132,18 @@ endFunction
 
 Function SetStarvationEnabled(bool enabled)
 	isStarvationEnabled = enabled
+	if (isStarvationEnabled)
+		Debug.Notification("Starvation is enabled.")
+	else
+		Debug.Notification("Starvation is disabled.")
+	endIf
 endFunction
 
 ;PROPERTIES
 SPELL Property _AbNutritionDetriment Auto
 SPELL Property _AbNutritionDetrimentMajor  Auto
 SPELL Property _AbNutritionDetrimentSevere  Auto
+SPELL Property _REAL_EnableStarvationSpell  Auto
 Float Property nutritionInitValue Auto
 Float Property nutritionWarnValue Auto
 Float Property nutritionHungerValue Auto
@@ -145,4 +152,4 @@ Float Property nutritionDeathValue  Auto
 Float Property nutritionLossPerDay  Auto
 Float Property nutritionMax  Auto
 Bool Property isStarvationEnabled = False Auto  
-Float Property minNutritionAfterEating  Auto  
+Float Property minNutritionAfterEating  Auto   
