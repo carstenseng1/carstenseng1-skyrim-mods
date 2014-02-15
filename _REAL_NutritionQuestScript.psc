@@ -21,7 +21,7 @@ Event OnInit()
 	;Debug.Notification("Initialized time " + lastUpdateTime)
 	;Debug.Notification("Initialized nutrition " + lastUpdateNutrition)
 	
-	RegisterForUpdate(10) ; Update every 10 seconds to reduce nutrition  value.
+	RegisterForUpdate(5) ; Update every 10 seconds to reduce nutrition  value.
 	
 	Player.AddSpell(_REAL_EnableStarvationSpell, false)
 endEvent
