@@ -5,7 +5,7 @@ _PlayerProtectionPlayerAliasScript Property PlayerAlias  Auto
 Int enabledOID
 Int debugNotificationsOID
 bool enabled = true
-bool debugNotifications = false
+bool debugNotifications = true
 
 event OnPageReset(string page)
 	{Called when a new page is selected, including the initial empty page}
@@ -14,7 +14,6 @@ event OnPageReset(string page)
 	enabledOID = AddToggleOption("Enabled", enabled)
 	AddEmptyOption()
 	debugNotificationsOID = AddToggleOption("Debug Notifications", debugNotifications)
-	
 endEvent
 
 event OnOptionSelect(int option)
@@ -34,7 +33,7 @@ endEvent
 
 event OnOptionDefault(int option)
 	if (option == enabledOID)
-		enabled = true
+		enabled = PlayerAlias.enabled
 		SetToggleOptionValue(enabledOID, enabled)
 	elseIf (option == debugNotificationsOID)
 		debugNotifications = false
@@ -52,4 +51,10 @@ endEvent
 
 bool Function IsDebugNotificationsEnabled()
 	return debugNotifications
+endFunction 
+
+Function Notification(string aNotification)
+	if (debugNotifications)
+		Debug.Notification(aNotification)
+	endIf
 endFunction

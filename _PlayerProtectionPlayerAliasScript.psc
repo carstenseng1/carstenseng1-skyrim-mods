@@ -2,7 +2,6 @@ Scriptname _PlayerProtectionPlayerAliasScript extends ReferenceAlias
 
 Actor Property PlayerRef  Auto  
 Spell Property _PlayerProtectionMassParalysis Auto
-_PlayerProtectionMCMScript Property ConfigMenu Auto 
 Quest Property DGIntimidateQuest Auto
 
 VisualEffect Property DragonAbsorbEffect Auto
@@ -11,7 +10,8 @@ EffectShader Property DragonPowerAbsorbFXS Auto
 sound property NPCDragonDeathSequenceWind auto
 sound property NPCDragonDeathSequenceExplosion auto
 
-bool enabled
+bool Property enabled Auto
+bool Property debugNotifications Auto
 bool reviving
 bool noBleedoutRecovery
 
@@ -184,7 +184,7 @@ endFunction
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 Function Notification(string aNotification)
-	if (ConfigMenu.IsDebugNotificationsEnabled())
+	if (debugNotifications)
 		Debug.Notification(aNotification)
 	endIf
 endFunction
