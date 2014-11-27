@@ -1,5 +1,10 @@
 Scriptname _PlayerProtectionPlayerAliasScript extends ReferenceAlias  
 
+GlobalVariable Property _player_protection_enabled Auto
+GlobalVariable Property _player_protection_stunEnabled  Auto  
+GlobalVariable Property _player_protection_debugNotifications Auto
+GlobalVariable Property _player_protection_killmoveImmunity Auto
+
 Actor Property PlayerRef  Auto  
 Spell Property _PlayerProtectionMassParalysis Auto
 Quest Property DGIntimidateQuest Auto
@@ -10,19 +15,17 @@ EffectShader Property DragonPowerAbsorbFXS Auto
 sound property NPCDragonDeathSequenceWind auto
 sound property NPCDragonDeathSequenceExplosion auto
 
-bool Property enabled Auto
-bool Property debugNotifications Auto
 bool reviving
 bool noBleedoutRecovery
 
 Event OnInit()
-	EnableImmortalDragonborn(true)
+	EnableImmortalDragonborn(_player_protection_enabled.GetValue())
 EndEvent
 
 Event OnEnterBleedout()
 	Notification("start bleedout")
 	
-	if (enabled && IsDying())
+	if (_player_protection_enabled.GetValue() && IsDying())
 		if (GetShouldRevive())
 			Revive(GetShouldCastParalysis())
 		else
@@ -36,7 +39,7 @@ Event OnEnterBleedout()
 endEvent
 
 Event OnUpdate()
-	if (!enabled)
+	if (!_player_protection_enabled.GetValue())
 		Notification("no update: mod is disabled")
 		return
 	endIf
@@ -55,45 +58,49 @@ Event OnUpdate()
 endEvent
 
 Function EnableImmortalDragonborn(bool enable)
+	if (enable)
+		_player_protection_enabled.SetValue(1)
+	else
+		_player_protection_enabled.SetValue(0)
+	endIf
+	
 	if (DGIntimidateQuest.IsRunning())
 		Notification("Cannot enable/disable Immortal Dragonborn while brawling")
 		return
 	endIf
 	
-	enabled = enable
 	if (enable)
 		Debug.Notification("Immortal Dragonborn")
 		UpdateImmortality()
 		RegisterForUpdate(60)
 	else
 		Debug.Notification("You are mortal.")
+		_player_protection_killmoveImmunity.SetValue(0)
 		PlayerRef.GetActorBase().SetEssential(false)
 		PlayerRef.SetNoBleedoutRecovery(false)
 		UnregisterForUpdate()
 	endIf
 	
-	Notification("Immortal Dragonborn enabled:"+enabled+" essential:"+PlayerRef.IsEssential())
+	Notification("Immortal Dragonborn enabled:"+enable+" essential:"+PlayerRef.IsEssential())
 endFunction
 
 Function UpdateImmortality()
-	if (PlayerRef.GetAV("DragonSouls") > 0)
+	if (_player_protection_enabled.GetValue() && PlayerRef.GetAV("DragonSouls") > 0)
 		if (!PlayerRef.IsEssential())
 			PlayerRef.GetActorBase().SetEssential(true)
+			_player_protection_killmoveImmunity.SetValue(1)
 			DragonPowerAbsorbFXS.Play(PlayerRef, 8)
 			NPCDragonDeathSequenceWind.play(PlayerRef) 
 			Debug.Notification("A great power stirs within you.")
 		endIf
 	else
 		if (PlayerRef.IsEssential())
+			_player_protection_killmoveImmunity.SetValue(0)
 			PlayerRef.GetActorBase().SetEssential(false)
 			Debug.Notification("You sense your mortality.")
 		endIf
 	endIf
 	Notification("UpdateImmortality: essential:"+PlayerRef.IsEssential()+" dragonsouls:"+PlayerRef.GetAV("DragonSouls"))
-endFunction
-
-bool Function IsEnabled()
-	return enabled
 endFunction
 
 bool Function IsDying()
@@ -130,13 +137,18 @@ bool Function GetShouldRevive()
 endFunction
 
 bool Function GetShouldCastParalysis()
-	bool ret = true
-	if (!PlayerRef.isInCombat())
-		Notification("player not in combat")
+	if (_player_protection_stunEnabled.GetValue() == 0)
+		Notification("stun disabled")
 		return false
 	endIf
 	
-	Notification("should cast paralysis")
+	bool ret = true
+	if (!PlayerRef.isInCombat())
+		Notification("stun cancelled: player not in combat")
+		return false
+	endIf
+	
+	Notification("should cast stun")
 	return ret
 endFunction
 
@@ -184,8 +196,7 @@ endFunction
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 Function Notification(string aNotification)
-	if (debugNotifications)
+	if (_player_protection_debugNotifications.GetValue())
 		Debug.Notification(aNotification)
 	endIf
 endFunction
-

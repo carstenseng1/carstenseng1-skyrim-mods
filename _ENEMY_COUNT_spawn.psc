@@ -2,50 +2,57 @@ Scriptname _ENEMY_COUNT_spawn extends Actor
 {Spawn an actor on load}
 
 ActorBase Property spawnedActorBase  Auto  
-Int Property count  Auto  
-Float Property chance Auto
 ActorBase Property requiredActorBase  Auto 
+_ENEMY_COUNT_QuestScript Property _ENEMY_COUNT_Quest  Auto  
 
 Event OnLoad()
-	if (true)
+	if (_ENEMY_COUNT_Quest.enabled)
 		Spawn()
 	endIf
 endevent
 
 Function Spawn()
-	bool doSpawn = true
+	;Require that the actor is alive
 	if (self.isDead())
-		doSpawn = false
-	endif
-
-	if (doSpawn)
-		if (requiredActorBase == NONE || self.GetActorBase() == requiredActorBase)
-			
-		else
-			doSpawn = false
-			Notification("Did not spawn. Required ActorBase does not match.")
-		endif
+		return
 	endif
 	
-	float chanceMult = 1.0
+	;Require that the actor equal the required actor base if set
+	;This prevents subclasses of spawning actor bases to incorrecly spawn
+	if (requiredActorBase == NONE || self.GetActorBase() == requiredActorBase)
+		;Check passed
+	else
+		Notification("Did not spawn. Required ActorBase does not match.")
+		return
+	endif
+	
+	;All checks passed. Will attempt spawn
+	Float chance = 1
 	if (self.isInInterior())
-		chanceMult *= 2
+		chance = _ENEMY_COUNT_Quest.spawnChanceInterior
+	else
+		chance = _ENEMY_COUNT_Quest.spawnChanceExterior
 	endif
+	if (chance < 0)
+		chance = 0
+	endIf
+	if (chance > 1)
+		chance = 1
+	endIf
 	
-	if (doSpawn)
-		while count
-			count -= 1
-			float random = Utility.RandomFloat()
-			if (chance * chanceMult >= random)
-				self.PlaceActorAtMe(spawnedActorBase)
-				Notification("Spawned enemy. chance:"+chance+" mult:"+chanceMult+" random:"+random)
-			endif
-		endwhile
-	endif
+	Int count = _ENEMY_COUNT_Quest.spawnCount
+	while count
+		count -= 1
+		float random = Utility.RandomFloat()
+		if (chance >= random)
+			self.PlaceActorAtMe(spawnedActorBase)
+			Notification("Spawned enemy. chance:"+chance+" random:"+random)
+		endif
+	endwhile
 endFunction
 
 Function Notification(string aNotification)
-	if (false)
+	if (_ENEMY_COUNT_Quest.debugNotifications)
 		Debug.Notification(aNotification)
 	endIf
 endFunction
